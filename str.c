@@ -34,7 +34,7 @@ int main()
 	}
 	
 	int tokensCount = 0;
-	Split(str, delimiters, &tokens, &tokensCount);
+	Split(string, delimiters, &tokens, &tokensCount);
 	
 	for(i = 0; i < tokensCount; i++)
 	{
