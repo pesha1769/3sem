@@ -4,9 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
+
+/*
+ * FIXIT: из названия переменной NUM непонятно, зачем она нужна. Переименуйте.
+ */
 #define NUM 100
 
-	void Split(char* string, char* delimiters, char*** tokens, int* tokensCount)
+void Split(char* string, char* delimiters, char*** tokens, int* tokensCount)
 {
 	char* temp = NULL;
 	temp = strtok(string, delimiters);
@@ -24,11 +28,20 @@
 		(*tokens)[*tokensCount] = NULL;
 }
 
-	int main(int argc, char const *argv[])
-{	
+int main(int argc, char const *argv[])
+{
 	int i = 0;
+/*
+ * FIXIT: нужно вынести 128 в отдельную константу
+ */
 	char buffer[128];
   	FILE *file;
+    
+  /*
+   * Очень похожий немного непонятный мне код видел у Дьячкова: зачем в коде программы для запуска задач генерировать файл
+   * с списком задач для запуска?
+   * Если хотите продемонстрировать пример работы, то просто закоммитьте файл commands.txt
+   */
   	file = fopen("commands.txt", "w+t");
 	fprintf(file, "3\n");
 	fprintf(file, "7 ls -l\n");

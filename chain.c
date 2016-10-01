@@ -3,14 +3,25 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 int main()
-{	
+{
 	int i = 0, status;
 	int n;
 	scanf("%d", &n);
 	pid_t fatherId  = getpid();
 
+/*
+{
+wait(&status);
+exit(0);
+}
+Всё что внутри скобок должно быть на таб сдвинуто:
+{
+  wait(&status);
+  exit(0);
+}
+ */
 	for(i = 0; i < n; ++i)
-	{	
+	{
 		if (getpid() == fatherId)
 		{
 		printf(" i am %d , my father is %d\n ", getpid(), getppid());
@@ -22,10 +33,7 @@ int main()
 		wait(&status);
 		exit(0);
 		}
-		
 		fatherId = getpid();
-			
-		
 	}
 	return 0;
 }
