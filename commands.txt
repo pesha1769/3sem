@@ -1,0 +1,4 @@
+3
+7 ls -l
+3 pwd
+1 echo Hello, World
