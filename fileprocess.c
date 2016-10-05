@@ -4,12 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
-
-/*
- * FIXIT: из названия переменной NUM непонятно, зачем она нужна. Переименуйте.
- */
-#define NUM 100
-
+#define MAX_CHARS_AMOUNT 100
+#define SIZE 128
 void Split(char* string, char* delimiters, char*** tokens, int* tokensCount)
 {
 	char* temp = NULL;
@@ -31,39 +27,24 @@ void Split(char* string, char* delimiters, char*** tokens, int* tokensCount)
 int main(int argc, char const *argv[])
 {
 	int i = 0;
-/*
- * FIXIT: нужно вынести 128 в отдельную константу
- */
-	char buffer[128];
+	char buffer[SIZE];
   	FILE *file;
-    
-  /*
-   * Очень похожий немного непонятный мне код видел у Дьячкова: зачем в коде программы для запуска задач генерировать файл
-   * с списком задач для запуска?
-   * Если хотите продемонстрировать пример работы, то просто закоммитьте файл commands.txt
-   */
-  	file = fopen("commands.txt", "w+t");
-	fprintf(file, "3\n");
-	fprintf(file, "7 ls -l\n");
-	fprintf(file, "3 pwd\n");
-	fprintf(file, "1 echo Hello, World\n");
-	fclose(file);
 	file = fopen("commands.txt", "r");
 		
-	char** tokens = (char**)malloc(sizeof(char*) * NUM);
+	char** tokens = (char**)malloc(sizeof(char*) * MAX_CHARS_AMOUNT);
 
-	for (i = 0; i < NUM; i++)
+	for (i = 0; i < MAX_CHARS_AMOUNT; i++)
 	{
-		tokens[i] = (char*)malloc(NUM * sizeof(char));
+		tokens[i] = (char*)malloc(MAX_CHARS_AMOUNT * sizeof(char));
 	}
 	int tokensCount = 0;
 	char delimiters[2] = {' ', '\n'};
-	fgets(buffer, 128, file);
+	fgets(buffer, SIZE, file);
 	int count = atoi(buffer);
 	for (i = 0; i < count; i++)
 	{
 
-		fgets(buffer, 128, file);
+		fgets(buffer, SIZE, file);
 		printf("%d - %s\n", i, buffer);
 
 		pid_t pid = fork();
@@ -76,7 +57,7 @@ int main(int argc, char const *argv[])
 			exit(0);
 		}
 	}
-	for (i = 0; i < NUM; i++)
+	for (i = 0; i < MAX_CHARS_AMOUNT; i++)
 	{
 		free(tokens[i]);
 	}
