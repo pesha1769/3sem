@@ -8,32 +8,20 @@ int main()
 	int n;
 	scanf("%d", &n);
 	pid_t fatherId  = getpid();
-
-/*
-{
-wait(&status);
-exit(0);
-}
-Всё что внутри скобок должно быть на таб сдвинуто:
-{
-  wait(&status);
-  exit(0);
-}
- */
 	for(i = 0; i < n; ++i)
 	{
 		if (getpid() == fatherId)
 		{
-		printf(" i am %d , my father is %d\n ", getpid(), getppid());
-		printf("\n");
-		pid_t pid = fork();
+			printf(" i am %d , my father is %d\n ", getpid(), getppid());
+			printf("\n");
+			pid_t pid = fork();
 		}
 		if (getpid() == fatherId)
 		{
-		wait(&status);
-		exit(0);
+			wait(&status);
+			exit(0);
 		}
-		fatherId = getpid();
+			fatherId = getpid();
 	}
 	return 0;
 }
