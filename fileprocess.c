@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
+
 #define MAX_CHARS_AMOUNT 100
 #define SIZE 128
+
 void Split(char* string, char* delimiters, char*** tokens, int* tokensCount)
 {
 	char* temp = NULL;
@@ -37,13 +39,14 @@ int main(int argc, char const *argv[])
 	{
 		tokens[i] = (char*)malloc(MAX_CHARS_AMOUNT * sizeof(char));
 	}
+	
 	int tokensCount = 0;
-	char delimiters[2] = {' ', '\n'};
+	char delimiters[] = {' ', '\n'};
 	fgets(buffer, SIZE, file);
 	int count = atoi(buffer);
+
 	for (i = 0; i < count; i++)
 	{
-
 		fgets(buffer, SIZE, file);
 		printf("%d - %s\n", i, buffer);
 
@@ -57,6 +60,7 @@ int main(int argc, char const *argv[])
 			exit(0);
 		}
 	}
+
 	for (i = 0; i < MAX_CHARS_AMOUNT; i++)
 	{
 		free(tokens[i]);
