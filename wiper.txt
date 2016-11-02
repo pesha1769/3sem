@@ -1,0 +1,4 @@
+glass 2
+cup 2
+plate 3
+spoon 1
