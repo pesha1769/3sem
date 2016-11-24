@@ -20,6 +20,11 @@ void find(char* path, int depth, char* filename)
 
 	while((current = readdir(dir)) != NULL)
 	{
+		char addres[LENGTH];
+		strcpy(addres, path);
+		strcat(addres, "/");
+		strcat(addres, current -> d_name);
+		stat(addres, &buf);
 		stat(current-> d_name, &buf);
 
 		if(S_ISREG(buf.st_mode))
@@ -32,7 +37,9 @@ void find(char* path, int depth, char* filename)
 			}
 		}
 	}
+	
 	rewinddir(dir);	
+	
 	while((current = readdir(dir)) != NULL)
 		{
 			char addres[LENGTH];
