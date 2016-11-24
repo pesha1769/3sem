@@ -20,6 +20,9 @@ void find(char* path, int depth, char* filename)
 
 	while((current = readdir(dir)) != NULL)
 	{
+    /*
+     * address
+     */
 		char addres[LENGTH];
 		strcpy(addres, path);
 		strcat(addres, "/");
@@ -47,6 +50,9 @@ void find(char* path, int depth, char* filename)
 			strcat(addres, "/");
 			strcat(addres, current -> d_name);
 			stat(addres, &buf);
+      /*
+       * Вам переменная directory фактически не нужна. Вы же могли просто переменную address вывести.
+       */
 			strcpy(directory, addres);
 
 		    if(strcmp(current -> d_name, "..") == 0)
