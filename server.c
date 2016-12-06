@@ -1,113 +1,131 @@
 #include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
-#include <pthread.h>
+#include <errno.h>
 #include <unistd.h>
-#include <sys/sem.h>
 #include <stdlib.h>
-#define DATA_TYPE 255
-#define MAX_THREADS 2
 
-int msqid;
-int semid;
+#define MAX_MESSAGE_SIZE 1000
 
-struct sembuf semobuf;
-void sema(int a)
-{
-	semobuf.sem_num = 0;
-	semobuf.sem_op = a;
-	semobuf.sem_flg = 0;
-	if (semop(semid , &semobuf , 1) < 0) 
-	{
-		printf("Can`t wait for condition\n");
-		exit(-1);
-	}
-}
-
-struct mymsgbuf
-{
-	long mtype;
-	struct
-	{
-		int a;
-		int b;
-		pid_t pid;
-	}info;
+struct User {
+    struct sockaddr_in cliaddr;
+    char nick[20];
 };
 
-struct myresmsgbuf
+void Split(char* string, char* delimiters, char*** tokens, int* tokensCount)
 {
-	long mtype;
-	int c;
-};
-
-
-void* my_thread(void* dummy)
-{
-	struct mymsgbuf buf = *(struct mymsgbuf*)(dummy);
-	int a = buf.info.a;
-	int b = buf.info.b;
-	printf("In thread a  = %d b = %d\n", a, b);
-	printf("Calculating...\n");
-	sleep(2);
-	struct myresmsgbuf res;
-	res.mtype = buf.info.pid;
-	res.c = a + b;
-	if (msgsnd(msqid, (struct myresmsgbuf *) &res, sizeof(res.c), 0) < 0)
-	{
-		printf("Can\'t send message to queue\n");
-		msgctl(msqid, IPC_RMID, (struct msqid_ds *) NULL);
-		exit(-1);
-	}
-	sema(1);
-	return NULL;
+    char* temp = NULL;
+    temp = strtok(string, delimiters);
+    if (temp == NULL) 
+    {
+        printf("error");
+        return;
+    }
+    while (temp != NULL)
+    {
+        strcpy((*tokens)[*tokensCount], temp);
+        (*tokensCount)++;
+        temp = strtok(NULL, delimiters);
+    }
 }
-
-
 
 
 int main() 
 {
-	pthread_t thread_id;
-	char pathname[] = "08-1a.c"; 
-	key_t key; 
-	int i, len; 
+    int sockfd;
+    int clilen;
+    char line[MAX_MESSAGE_SIZE], subline[MAX_MESSAGE_SIZE];
+    char message[MAX_MESSAGE_SIZE];
+    struct sockaddr_in servaddr, cliaddr;
+    struct User uTable[15];
+    int i, n = 0, k;
+    char* delimiters = (char*) malloc (100 * sizeof(char));
+    char** tokens = (char**) malloc (sizeof(char*) * 100);
+    int m = 0;
+    for(m = 0; m < 100; m++)
+		tokens[m] = (char*)malloc(100 * sizeof(char));
+	int tokensCount = 0;
+  
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(51000);
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  
+    if ((sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0) 
+    {
+        perror(NULL);
+        exit(1);
+    } 
+  
+    if (bind(sockfd, (struct sockaddr*) &servaddr, sizeof(servaddr)) < 0)
+    {
+        perror(NULL);
+        close(sockfd);
+        exit(1);
+    }
+  
+    while (1) 
+    {
+        clilen = sizeof(cliaddr);
+        if (recvfrom(sockfd, line, MAX_MESSAGE_SIZE, 0, (struct sockaddr*)&cliaddr, &clilen) < 0)
+        {
+            perror(NULL);
+            close(sockfd);
+            exit(1);
+        }
 
+        for (i = 0; i < n; i++)
+            if (cliaddr.sin_addr.s_addr == uTable[i].cliaddr.sin_addr.s_addr && cliaddr.sin_port == uTable[i].cliaddr.sin_port)
+            {
+                Split(line, "@", &tokens, &tokensCount);
+                strcpy(message, uTable[i].nick);
+                strcat(message, "->");
+                strcat(message, tokens[tokensCount - 1]);
+                k = i;
+                printf("%s", message);
+                break;
+            }
 
+        if (n == i) 
+        {
+            bzero(&uTable[n].cliaddr, sizeof(uTable[n].cliaddr));
+            uTable[n].cliaddr.sin_family = AF_INET;
+            uTable[n].cliaddr.sin_addr.s_addr = cliaddr.sin_addr.s_addr;
+            uTable[n].cliaddr.sin_port = cliaddr.sin_port;
+            strcpy(uTable[n].nick, line);
+            n++;
 
-	if((key = ftok(pathname,0)) < 0)
-	{
-		printf("Can\'t generate key\n");
-		exit(-1);
-	}
+        } else 
+        {
+        	
+            for (i = 0; i < n; i++)
+            	if (i != k)
+            		{
+                    	clilen = sizeof(uTable[i].cliaddr);
+                    	if (tokensCount > 1)
+                    		{	
+                    			int j = 0;
+                    			for (j = 0; j < tokensCount - 1; ++j)
+                    			{
+                    				if(strcmp(tokens[j], uTable[i].nick) == 0)
+                    					sendto(sockfd, message, MAX_MESSAGE_SIZE, 0, (struct sockaddr*)&uTable[i].cliaddr, clilen);
+                        									
+                    			}
 
-
-	if((msqid = msgget(key, 0666 | IPC_CREAT)) < 0)
-	{
-		printf("Can\'t get msqid\n");
-		exit(-1);
-	} 
-
-	if ((semid = semget(key, 1, 0666|IPC_CREAT)) < 0) 
-	{
-		printf("Can't create semaphore set\n");
-		exit(-1);
-	}
-	sema(MAX_THREADS);
-
-	struct mymsgbuf mybuf;
-
-	while(1)
-	{
-		if(( len = msgrcv(msqid, (struct msgbuf *) &mybuf, sizeof(mybuf.info), DATA_TYPE, 0) < 0))
-		{
-			printf("Can\'t receive message from queue\n");
-			exit(-1);
-		}
-		int result = pthread_create(&thread_id, (pthread_attr_t*)NULL, my_thread, &mybuf);
-	}
-
-	return 0;
+                    		}else
+                   				{    
+                       				 if (sendto(sockfd, message, MAX_MESSAGE_SIZE, 0, (struct sockaddr*)&uTable[i].cliaddr, clilen) < 0)
+                        				{
+                            				perror(NULL);
+                   							close(sockfd);
+                       						exit(1);
+                    					}
+                				}
+                	}
+        }
+    }
+    return 0;
 }
